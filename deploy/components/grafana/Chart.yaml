@@ -1,0 +1,10 @@
+# grafana: the official "grafana" chart, pinned. Upgrade = change "version" below and commit.
+apiVersion: v2
+name: grafana
+description: "Grafana with Loki as data source; admin password from Vault"
+type: application
+version: 0.1.0
+dependencies:
+  - name: grafana
+    version: 13.2.7
+    repository: https://grafana-community.github.io/helm-charts

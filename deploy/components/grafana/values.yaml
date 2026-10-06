@@ -1,0 +1,33 @@
+# Grafana with Loki pre-configured as a data source.
+#
+# Admin credentials come from Vault (secret/grafana), loaded by hand into
+# Vault. Vault Secrets Operator copies them into the Secret "grafana-admin".
+# Values for the "grafana" chart go under "grafana:" (Helm dependency convention).
+# Web UI at http://grafana.<ip>.nip.io (templates/ui-route.yaml). Set by deploy/root/values.yaml.
+uiRoute: false
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+
+  persistence:
+    enabled: false # dashboards and data sources are provisioned from Git
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          type: loki
+          uid: loki
+          access: proxy
+          url: http://loki.loki.svc.cluster.local:3100
+          isDefault: true

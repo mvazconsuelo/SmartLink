@@ -1,0 +1,10 @@
+# loki: the official "loki" chart, pinned. Upgrade = change "version" below and commit.
+apiVersion: v2
+name: loki
+description: "Loki 3.6, single binary: stores the logs"
+type: application
+version: 0.1.0
+dependencies:
+  - name: loki
+    version: 7.3.0
+    repository: https://grafana.github.io/helm-charts

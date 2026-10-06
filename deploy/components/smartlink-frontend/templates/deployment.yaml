@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartlink-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: smartlink-frontend
+    app.kubernetes.io/part-of: smartlink
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: smartlink-frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: smartlink-frontend
+        app.kubernetes.io/part-of: smartlink
+    spec:
+      # The dashboard never talks to the Kubernetes API: no token mounted.
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: frontend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 8501
+          env:
+            # API Service in the backend namespace.
+            - name: API_URL
+              value: http://smartlink-api.smartlink-backend.svc.cluster.local
+          readinessProbe:
+            httpGet:
+              path: /app/_stcore/health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /app/_stcore/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

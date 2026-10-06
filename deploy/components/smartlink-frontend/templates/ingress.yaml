@@ -1,0 +1,21 @@
+# Public entry to the dashboard, under /app (no host: any hostname).
+# Traefik merges it with the API Ingress; the longest path wins.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: smartlink-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: smartlink
+spec:
+  ingressClassName: traefik   # K3s built-in
+  rules:
+    - http:
+        paths:
+          - path: /app
+            pathType: Prefix
+            backend:
+              service:
+                name: smartlink-frontend
+                port:
+                  name: http

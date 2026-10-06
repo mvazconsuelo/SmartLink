@@ -1,0 +1,15 @@
+{{- /* K3s's own way to customize a packaged chart (https://docs.k3s.io/add-ons/helm):
+a HelmChartConfig with the same name and namespace as the HelmChart that K3s created for
+Traefik. K3s merges `valuesContent` over the chart defaults and upgrades Traefik by itself.
+The object lives in kube-system (where K3s keeps Traefik), not in this component's namespace.
+Changing it rolls Traefik: expect a few seconds without ingress (one replica). */ -}}
+{{- with .Values.traefik }}
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    {{- toYaml . | nindent 4 }}
+{{- end }}

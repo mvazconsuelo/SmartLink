@@ -1,0 +1,17 @@
+# Vault Secrets Operator (VSO): copies values from Vault into Kubernetes
+# Secrets. Connection and authentication are declared per namespace
+# (VaultConnection / VaultAuth in smartlink-backend/ and grafana/ templates/vault.yaml), so no global
+# default connection is created here.
+# Values for the "vault-secrets-operator" chart go under "vault-secrets-operator:" (Helm dependency convention).
+vault-secrets-operator:
+  defaultVaultConnection:
+    enabled: false
+
+  controller:
+    manager:
+      resources:
+        requests:
+          cpu: 20m
+          memory: 64Mi
+        limits:
+          memory: 256Mi

@@ -1,0 +1,15 @@
+# Argo CD configuration (chart argo-cd). Used by the Application "argocd" and
+# by scripts/02-argocd.sh at bootstrap, so both render the same objects.
+# Values for the "argo-cd" chart go under "argo-cd:" (Helm dependency convention).
+# Web UI at http://argocd.<ip>.nip.io (templates/ui-route.yaml). Set by deploy/root/values.yaml.
+uiRoute: false
+argo-cd:
+  configs:
+    params:
+      # No TLS on argocd-server: Traefik serves it over HTTP (templates/ui-route.yaml).
+      server.insecure: true
+  dex:
+    enabled: false # no SSO; local admin user
+  crds:
+    # If the chart is ever removed, keep the CRDs (and with them, every Application).
+    keep: true

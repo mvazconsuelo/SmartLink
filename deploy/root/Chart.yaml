@@ -1,0 +1,5 @@
+apiVersion: v2
+name: smartlink-root
+description: Root of SmartLink's GitOps — one Argo CD Application per folder in deploy/components/.
+type: application
+version: 0.1.0

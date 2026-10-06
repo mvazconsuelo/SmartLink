@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smartlink-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: smartlink-frontend
+    app.kubernetes.io/part-of: smartlink
+spec:
+  selector:
+    app.kubernetes.io/name: smartlink-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

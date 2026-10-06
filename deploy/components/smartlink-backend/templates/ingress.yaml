@@ -1,0 +1,21 @@
+# Public entry to the API: short links, /health, /docs. No host: answers on
+# any hostname; the public name only lives in DNS and PUBLIC_BASE_URL.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: smartlink-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: smartlink
+spec:
+  ingressClassName: traefik   # K3s built-in
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: smartlink-api
+                port:
+                  name: http

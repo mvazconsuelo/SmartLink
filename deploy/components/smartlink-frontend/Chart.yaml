@@ -1,0 +1,5 @@
+apiVersion: v2
+name: smartlink-frontend
+description: "SmartLink dashboard (Streamlit) under /app. Talks only to the API."
+type: application
+version: 0.1.0

@@ -1,0 +1,18 @@
+{{- /* Web UI at http://grafana.<ip>.nip.io: Traefik matches the host prefix, so no IP
+lives in Git. Toggled for every dashboard at once by uiRoutes.enabled in
+deploy/root/values.yaml (turn it off on a VM exposed to the Internet). */ -}}
+{{- if .Values.uiRoute }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana-ui
+  namespace: {{ .Release.Namespace }}
+spec:
+  entryPoints: [web]
+  routes:
+    - match: HostRegexp(`^grafana\..+`)
+      kind: Rule
+      services:
+        - name: grafana
+          port: 80
+{{- end }}

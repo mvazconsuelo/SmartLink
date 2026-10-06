@@ -1,0 +1,12 @@
+line-length = 120
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+
+[lint.flake8-bugbear]
+# FastAPI's dependency injection idiom: Depends() in argument defaults is intended.
+extend-immutable-calls = ["fastapi.Depends"]
+
+[lint.isort]
+known-first-party = ["app"]

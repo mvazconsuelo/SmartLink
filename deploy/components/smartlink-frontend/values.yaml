@@ -1,0 +1,16 @@
+# SmartLink frontend (Streamlit dashboard). Deployed by the Argo CD Application
+# "smartlink-frontend" into the namespace of the same name.
+#
+# CI changes ONLY image.repository and image.tag on each deploy (job "gitops").
+# (No blank lines: yq rewrites this file on every deploy.)
+image:
+  repository: ghcr.io/set-by-ci/smartlink-frontend
+  tag: "0000000"
+# One replica on purpose: a Streamlit session lives in one pod's memory.
+replicas: 1
+resources:
+  requests:
+    cpu: 50m
+    memory: 192Mi
+  limits:
+    memory: 512Mi

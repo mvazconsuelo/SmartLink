@@ -1,0 +1,77 @@
+# Grafana Alloy collects logs and ships them to Loki.
+# It reads pod logs through the Kubernetes API (no hostPath mounts) and also
+# ships Kubernetes events, so "ImagePullBackOff" or "FailedScheduling" can be
+# searched in Grafana next to the application logs.
+# Values for the "alloy" chart go under "alloy:" (Helm dependency convention).
+alloy:
+  controller:
+    # One collector is enough for a single-node K3s; as a DaemonSet with
+    # loki.source.kubernetes, several nodes would each tail every pod.
+    type: deployment
+    replicas: 1
+
+  alloy:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+    configMap:
+      content: |
+        // 1. Find every pod in the cluster.
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        // 2. Turn Kubernetes metadata into a few useful, low-cardinality labels.
+        discovery.relabel "pods" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+        }
+
+        // 3. Tail container logs via the Kubernetes API.
+        loki.source.kubernetes "pods" {
+          targets    = discovery.relabel.pods.output
+          forward_to = [loki.process.pods.receiver]
+        }
+
+        // 4. SmartLink logs are "level=INFO ... msg=..."; promote the level to a
+        //    label so {app="smartlink-api", level="ERROR"} is a cheap query.
+        loki.process "pods" {
+          stage.regex {
+            expression = "level=(?P<level>[A-Z]+)"
+          }
+          stage.labels {
+            values = { level = "" }
+          }
+          forward_to = [loki.write.default.receiver]
+        }
+
+        // 5. Kubernetes events (pulls, crashes, scheduling) as log lines.
+        loki.source.kubernetes_events "events" {
+          log_format = "logfmt"
+          forward_to = [loki.write.default.receiver]
+        }
+
+        loki.write "default" {
+          endpoint {
+            url = "http://loki.loki.svc.cluster.local:3100/loki/api/v1/push"
+          }
+        }

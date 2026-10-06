@@ -1,0 +1,18 @@
+# =============================================================================
+# SmartLink — global settings (the only file that is not per component).
+#
+# Component versions are NOT here: each one is in deploy/components/<name>/Chart.yaml,
+# next to its configuration. The app's image tags are written by CI in
+# deploy/components/smartlink-{backend,frontend}/values.yaml.
+# =============================================================================
+# Set by the root Application (scripts/02-argocd.sh). Not edited by hand.
+repoURL: ""
+revision: main
+# Argo CD, Grafana, Vault and Traefik at http://<name>.<ip>.nip.io.
+# On a VM exposed to the Internet: false, and use port-forward instead.
+uiRoutes:
+  enabled: true
+# Read by the VM scripts (01-k3s.sh), not by Argo CD.
+bootstrap:
+  k3s: v1.37.1+k3s1
+  helm: v4.3.0

@@ -1,0 +1,17 @@
+# SmartLink backend (FastAPI). Deployed by the Argo CD Application
+# "smartlink-backend" into the namespace of the same name.
+#
+# CI changes ONLY image.repository and image.tag on each deploy (job "gitops"):
+# a rollback is a `git revert` of that commit.
+# (No blank lines: yq rewrites this file on every deploy.)
+image:
+  repository: ghcr.io/set-by-ci/smartlink-api
+  tag: "0000000"
+# Stateless API: 2 replicas, a pod can be replaced without downtime.
+replicas: 2
+resources:
+  requests:
+    cpu: 50m
+    memory: 96Mi
+  limits:
+    memory: 256Mi

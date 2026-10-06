@@ -1,0 +1,51 @@
+# HashiCorp Vault server, single node, deployed by Argo CD.
+#
+# Storage: integrated storage (Raft) on a PersistentVolume (K3s local-path).
+# The chart only enables Raft under "ha"; with 1 replica this is NOT high
+# availability, it is one node with durable storage and snapshot support.
+#
+# Nothing secret lives here: unseal keys and the root token are produced by
+# `vault operator init` at bootstrap and kept outside Git.
+# Values for the "vault" chart go under "vault:" (Helm dependency convention).
+# Web UI at http://vault.<ip>.nip.io (templates/ui-route.yaml). Set by deploy/root/values.yaml.
+uiRoute: false
+vault:
+  global:
+    enabled: true
+
+  # Sidecar injector not used: secrets reach pods through Vault Secrets Operator.
+  injector:
+    enabled: false
+
+  server:
+    standalone:
+      enabled: false
+    ha:
+      enabled: true
+      replicas: 1
+      raft:
+        enabled: true
+        setNodeId: true
+      # The chart renders a PodDisruptionBudget with maxUnavailable: 0. With a
+      # single replica that blocks every `kubectl drain` (node maintenance, K3s
+      # upgrades) forever, and protects nothing: there is no second pod to keep.
+      disruptionBudget:
+        enabled: false
+
+    dataStorage:
+      enabled: true
+      size: 2Gi
+      # storageClass not set: K3s default "local-path" (disk of the node).
+
+    auditStorage:
+      enabled: false
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  ui:
+    enabled: true

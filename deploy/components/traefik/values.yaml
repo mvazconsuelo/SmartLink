@@ -1,0 +1,12 @@
+# Web UI at http://traefik.<ip>.nip.io (templates/ui-route.yaml). Set by deploy/root/values.yaml.
+uiRoute: false
+
+# Traefik's configuration: whatever goes here is passed, as is, to K3s's Traefik chart
+# (templates/helm-chart-config.yaml). Keep it minimal; add what you need under this key.
+# Everything the chart accepts: https://github.com/traefik/traefik-helm-chart (values.yaml)
+#   e.g.  log: { level: DEBUG }
+#         deployment: { replicas: 2 }
+#         ports: { web: { redirections: ... } }
+traefik:
+  accessLog:
+    enabled: true   # every request as a log line: Alloy ships it to Loki → {app="traefik"} in Grafana

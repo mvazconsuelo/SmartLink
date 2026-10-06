@@ -1,0 +1,70 @@
+{{- /*
+One Application per folder in deploy/components/ (Git directory generator,
+https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Git/).
+Rule: folder name = Application name = namespace. Adding a component = adding a folder
+(and its namespace to project.yaml).
+
+The {{`{{ ... }}`}} parts are for the ApplicationSet controller (Go templates); Helm
+leaves them as they are.
+*/ -}}
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: smartlink
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: {{ .Values.repoURL }}
+        revision: {{ .Values.revision }}
+        directories:
+          - path: deploy/components/*
+  template:
+    metadata:
+      name: '{{`{{ .path.basename }}`}}'
+    spec:
+      project: smartlink
+      source:
+        repoURL: {{ .Values.repoURL }}
+        targetRevision: {{ .Values.revision }}
+        path: '{{`{{ .path.path }}`}}'
+        helm:
+          valuesObject:
+            uiRoute: {{ .Values.uiRoutes.enabled }}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{`{{ .path.basename }}`}}'
+      # Vault Secrets Operator restarts a Deployment when its secret changes by
+      # setting this annotation on the Pod template. Expected, not drift.
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jqPathExpressions:
+            - '.spec.template.metadata.annotations."vso.secrets.hashicorp.com/restartedAt"'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true
+          # Vault Secrets Operator CRDs come from another component: wait for them.
+          - SkipDryRunOnMissingResource=true
+        retry:
+          limit: 10
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 10m
+  # The only per-component differences:
+  #   argocd, vault       prune off: never delete Argo CD itself or Vault's data by accident
+  #   smartlink-*         selfHeal off: manual drift stays visible as OutOfSync (lab 09)
+  templatePatch: |
+    spec:
+      syncPolicy:
+        automated:
+          prune: {{`{{ not (has .path.basename (list "argocd" "vault")) }}`}}
+          selfHeal: {{`{{ not (hasPrefix "smartlink-" .path.basename) }}`}}

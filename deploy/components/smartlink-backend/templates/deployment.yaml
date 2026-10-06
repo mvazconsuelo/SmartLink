@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartlink-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: smartlink-api
+    app.kubernetes.io/part-of: smartlink
+spec:
+  replicas: {{ .Values.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0   # never fewer ready pods than requested during a deploy
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: smartlink-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: smartlink-api
+        app.kubernetes.io/part-of: smartlink
+    spec:
+      serviceAccountName: smartlink-backend
+      # The pod never talks to Vault or the Kubernetes API: no token mounted.
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 8000
+          # All configuration comes from Vault through the VSO-managed Secret.
+          envFrom:
+            - secretRef:
+                name: smartlink-backend
+          # /health does not query D1: restarting pods would not fix D1.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

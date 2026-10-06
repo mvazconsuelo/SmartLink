@@ -1,0 +1,5 @@
+apiVersion: v2
+name: smartlink-backend
+description: "SmartLink API (FastAPI) — short links, auth, stats. Config from Vault."
+type: application
+version: 0.1.0

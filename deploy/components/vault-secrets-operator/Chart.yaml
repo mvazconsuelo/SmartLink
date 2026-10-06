@@ -1,0 +1,10 @@
+# vault-secrets-operator: the official "vault-secrets-operator" chart, pinned. Upgrade = change "version" below and commit.
+apiVersion: v2
+name: vault-secrets-operator
+description: "Vault Secrets Operator: copies Vault values into Kubernetes Secrets"
+type: application
+version: 0.1.0
+dependencies:
+  - name: vault-secrets-operator
+    version: 1.6.0
+    repository: https://helm.releases.hashicorp.com

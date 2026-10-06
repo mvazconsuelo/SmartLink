@@ -1,0 +1,46 @@
+# Grafana's admin password: Vault KV ──► VSO ──► Secret "grafana-admin" ──► Grafana.
+# Same pattern as the backend (smartlink-backend/templates/vault.yaml).
+# Identity: the chart's ServiceAccount "grafana" in this namespace, allowed by the
+# Vault role "grafana" (scripts/04-vault.sh) to read only secret/grafana.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: vault
+  namespace: {{ .Release.Namespace }}
+spec:
+  address: http://vault.vault.svc.cluster.local:8200
+  skipTLSVerify: false
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: grafana
+  namespace: {{ .Release.Namespace }}
+spec:
+  vaultConnectionRef: vault
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: grafana
+    serviceAccount: grafana
+    audiences: ["vault"]
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: grafana-admin
+  namespace: {{ .Release.Namespace }}
+spec:
+  vaultAuthRef: grafana
+  type: kv-v2
+  mount: secret
+  path: grafana
+  refreshAfter: 60s
+  destination:
+    name: grafana-admin
+    create: true
+    transformation:
+      excludeRaw: true
+  rolloutRestartTargets:
+    - kind: Deployment
+      name: grafana

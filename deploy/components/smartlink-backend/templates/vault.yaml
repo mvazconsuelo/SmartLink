@@ -1,0 +1,56 @@
+# Backend configuration: Vault KV ──► VSO ──► Secret "smartlink-backend" ──► pods.
+# Git declares where the values are and who may read them; the values live
+# only in Vault.
+---
+# Identity used to log in to Vault (the role only accepts this SA).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: smartlink-backend
+  namespace: {{ .Release.Namespace }}
+automountServiceAccountToken: false
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: vault
+  namespace: {{ .Release.Namespace }}
+spec:
+  address: http://vault.vault.svc.cluster.local:8200
+  skipTLSVerify: false
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: smartlink-backend
+  namespace: {{ .Release.Namespace }}
+spec:
+  vaultConnectionRef: vault
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: smartlink-backend   # Vault role: accepts only this ServiceAccount in this namespace
+    serviceAccount: smartlink-backend
+    audiences: ["vault"]
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: smartlink-backend
+  namespace: {{ .Release.Namespace }}
+spec:
+  vaultAuthRef: smartlink-backend
+  type: kv-v2
+  mount: secret
+  path: smartlink/backend   # secret/smartlink/backend, loaded by scripts/04-vault.sh
+  refreshAfter: 60s
+  destination:
+    name: smartlink-backend
+    create: true
+    # Without this, VSO adds a "_raw" key holding every value at once.
+    transformation:
+      excludeRaw: true
+  # Env vars are read at startup: restart the API when the values change.
+  rolloutRestartTargets:
+    - kind: Deployment
+      name: smartlink-api

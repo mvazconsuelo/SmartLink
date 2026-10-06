@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Local configuration and secrets
+.env
+
+
+# Wrangler local state
+.wrangler/
+
+# OS
+.DS_Store
+
+
+# Install scripts configuration (created and filled in by the scripts)
+scripts/config.env
+
+# Helm dependencies of deploy/components/*: downloaded by Argo CD (and by
+# scripts/02-argocd.sh); the pinned versions live in each Chart.yaml.
+deploy/components/*/charts/
+deploy/components/*/Chart.lock

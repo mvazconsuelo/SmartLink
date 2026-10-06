@@ -1,0 +1,4 @@
+# Renders nothing; fails the render if the root Application did not pass repoURL.
+{{- if not .Values.repoURL }}
+{{- fail "repoURL is required: the root Application (scripts/02-argocd.sh) sets it" }}
+{{- end }}

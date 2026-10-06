@@ -1,0 +1,10 @@
+# alloy: the official "alloy" chart, pinned. Upgrade = change "version" below and commit.
+apiVersion: v2
+name: alloy
+description: "Grafana Alloy 1.20: collects pod logs and Kubernetes events"
+type: application
+version: 0.1.0
+dependencies:
+  - name: alloy
+    version: 1.13.0
+    repository: https://grafana.github.io/helm-charts

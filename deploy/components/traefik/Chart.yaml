@@ -1,0 +1,8 @@
+# traefik: Traefik ships with K3s (kube-system), so there is no chart to install here.
+# This folder holds (1) its configuration, as a K3s HelmChartConfig, and (2) the route to its
+# read-only dashboard. Same pattern as the other components: argocd/grafana/vault.
+apiVersion: v2
+name: traefik
+description: "Traefik (built into K3s): minimal configuration in Git + dashboard at http://traefik.<ip>.nip.io"
+type: application
+version: 0.1.0

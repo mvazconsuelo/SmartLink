@@ -1,0 +1,34 @@
+{{- /*
+AppProject "smartlink": what every SmartLink Application may use, instead of
+Argo CD's wide-open "default" project.
+  sourceRepos   this repo + the official chart repositories (dependencies)
+  destinations  only SmartLink's namespaces (one per folder in deploy/components/)
+Created before the Applications (sync wave -1). The root Application stays in
+"default": it is the bootstrap that creates this project.
+Note: "argocd" (self-management) and "kube-system" (Traefik's HelmChartConfig) are admin-equivalent
+by design.
+*/ -}}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: smartlink
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: SmartLink platform (app, Vault, observability, Argo CD itself)
+  sourceRepos:
+    - {{ .Values.repoURL }}
+    - https://argoproj.github.io/argo-helm
+    - https://helm.releases.hashicorp.com
+    - https://grafana.github.io/helm-charts
+    - https://grafana-community.github.io/helm-charts
+  destinations:
+    {{- range list "argocd" "kube-system" "traefik" "vault" "vault-secrets-operator" "loki" "alloy" "grafana" "smartlink-backend" "smartlink-frontend" }}
+    - server: https://kubernetes.default.svc
+      namespace: {{ . }}
+    {{- end }}
+  # The official charts ship cluster-wide objects (CRDs, ClusterRoles, webhooks).
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

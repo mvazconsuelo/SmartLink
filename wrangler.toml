@@ -1,0 +1,15 @@
+# Used ONLY by CI to apply versioned schema migrations to D1:
+#   wrangler d1 migrations apply smartlink --remote
+# There is no Worker in this project; SmartLink reaches D1 via the REST API.
+# Applied migrations are tracked by Wrangler in the d1_migrations table.
+#
+# The database is created by scripts/03-d1.sh. database_id is filled in by
+# the CI job (looked up by name), so no ID has to be copied into this file.
+name = "smartlink"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "smartlink"
+database_id = "RESOLVED_BY_CI"
+migrations_dir = "migrations"
